@@ -80,10 +80,10 @@ jobs:
       - name: test
         run: make test-cov
       - name: Upload coverage
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v6
         continue-on-error: true
         with:
-          files: ./coverage.xml
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   sdk:
     name: sdk
