@@ -1,0 +1,27 @@
+---
+description: Porto SDK Python — contributor workflow
+alwaysApply: true
+---
+
+# Porto SDK Python — contribution
+
+Python 3.13. Runtime: **porto-data**. Dev/BDD: **porto-features**.
+
+1. Read [`CONTRIBUTING.md`](../../CONTRIBUTING.md).
+2. Do not swap `execution.json` (billing/execution gates) with `graph.edges.wire` (checkout codes).
+3. Cross-SDK behavior: coordinate with TypeScript; note parity in the PR.
+
+Architecture: [sdk.mdc](sdk.mdc).
+
+```bash
+make          # .venv + editable install + hooks
+make check    # registry + bindings + ruff + mypy + unit tests
+make sdk      # porto-features @sdk batches
+make validate # check + sdk + adapters
+```
+
+Heavy: `I_ACCEPT_PAID_API_COST=1 make heavy` / `test-api` only with credentials.
+
+Do not commit: `artifacts/`, `.venv/`, `*.backup`.
+
+BDD: `tests/bdd/runner/batches.py` · `scripts/run_bdd_batches.py` · `tests/bdd/steps/`. Use `bound_provider(client)` (`tests/support/`) then `ProviderClient.resolve` — not a root `client.resolver`.

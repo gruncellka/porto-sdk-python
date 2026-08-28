@@ -1,0 +1,34 @@
+---
+description: Porto SDK Python — architecture invariants
+alwaysApply: true
+---
+
+# Porto SDK Python — architecture
+
+Multi-provider postal SDK: porto-data → resolution → adapters. Provider differences come from data/graph, not `if provider` branches in `porto_sdk/services/`.
+
+## Invariants
+
+1. Product/price resolution only via `services/resolution/*` and `PortoResolver` — not ad-hoc loaders in validation, registered, or CLI business paths. Wire/mark via `ExecutionBinding`.
+2. `execution.json` = wire + billing/execution gates; `graph.edges.wire` = checkout codes — never swap ([BUGBOT.md](../BUGBOT.md) §4).
+3. Graph wins for validity; `client.providers` is a projection — do not invent parallel capability tables.
+4. Adapters (`porto_sdk/adapters/`) — HTTP, auth, error map; take resolved input, return `PortoMark`.
+5. No provider name literals in `services/` or `services/resolution/` (tests enforce).
+
+Public verbs on `ProviderClient`: `resolve` / `price` / `mark` / `prepare` / `bytes` / `options` / `estimate` / `advise` / `can` / `wallet`. Envelope `identify` stays on `client.envelopes`.
+
+Do not invent catalog fields in SDK loaders — copy JSON only.
+
+`PORTO_CAPABILITY_UNSUPPORTED` = missing wallet/mark/execution-wire capability. Missing catalog service for an explicit `ServiceKind` = `PORTO_SERVICE_UNSUPPORTED`.
+
+## Cross-SDK
+
+- Coordinate resolver, adapter, BDD step, and batch id changes with TypeScript.
+- `tests/bdd/runner/batches.py` ids must match TS `batches.ts`.
+- Note parity in the PR; run `make validate` before push.
+
+## Do not build (unless asked)
+
+Per-provider resolver forks, SDK payment/ledger store, plugin frameworks, separate rule-engine server.
+
+Quality gates: [contribution.mdc](contribution.mdc). Review: [BUGBOT.md](../BUGBOT.md).

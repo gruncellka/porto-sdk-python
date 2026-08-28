@@ -1,0 +1,49 @@
+name: heavy
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref_name }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  PYTHON_VERSION: "3.13"
+  I_ACCEPT_PAID_API_COST: "1"
+  PORTO_DEUTSCHEPOST_INTERNETMARKE_API_KEY: ${{ secrets.PORTO_DEUTSCHEPOST_INTERNETMARKE_API_KEY }}
+  PORTO_DEUTSCHEPOST_INTERNETMARKE_API_SECRET: ${{ secrets.PORTO_DEUTSCHEPOST_INTERNETMARKE_API_SECRET }}
+  PORTO_DEUTSCHEPOST_INTERNETMARKE_USERNAME: ${{ secrets.PORTO_DEUTSCHEPOST_INTERNETMARKE_USERNAME }}
+  PORTO_DEUTSCHEPOST_INTERNETMARKE_PASSWORD: ${{ secrets.PORTO_DEUTSCHEPOST_INTERNETMARKE_PASSWORD }}
+
+jobs:
+  heavy:
+    name: heavy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: pyproject.toml
+      - name: Require Internetmarke secrets (fail closed)
+        run: |
+          set -eu
+          test -n "${PORTO_DEUTSCHEPOST_INTERNETMARKE_API_KEY:-}" || {
+            echo "Missing PORTO_DEUTSCHEPOST_INTERNETMARKE_API_KEY"; exit 1;
+          }
+          test -n "${PORTO_DEUTSCHEPOST_INTERNETMARKE_API_SECRET:-}" || {
+            echo "Missing PORTO_DEUTSCHEPOST_INTERNETMARKE_API_SECRET"; exit 1;
+          }
+          test -n "${PORTO_DEUTSCHEPOST_INTERNETMARKE_USERNAME:-}" || {
+            echo "Missing PORTO_DEUTSCHEPOST_INTERNETMARKE_USERNAME"; exit 1;
+          }
+          test -n "${PORTO_DEUTSCHEPOST_INTERNETMARKE_PASSWORD:-}" || {
+            echo "Missing PORTO_DEUTSCHEPOST_INTERNETMARKE_PASSWORD"; exit 1;
+          }
+      - name: Heavy provider (canary + matrix)
+        run: make heavy

@@ -1,0 +1,65 @@
+# Pre-commit mirrors CI validation leaf jobs for `make check`:
+#   registry · bindings · lint · types · test
+# Install:  make install-hooks   (also run by plain `make`)
+# Full CI (`sdk` / `adapters` / `build`) stays `make validate` / GitHub Actions.
+
+fail_fast: false
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+        name: trailing-whitespace
+      - id: end-of-file-fixer
+        name: eof-fixer
+      - id: check-yaml
+        name: check-yaml
+      - id: check-toml
+        name: check-toml
+      - id: check-merge-conflict
+        name: check-merge-conflict
+      - id: check-case-conflict
+        name: check-case-conflict
+      - id: detect-private-key
+        name: detect-private-key
+      - id: no-commit-to-branch
+        name: no-commit-to-branch
+        args: [--branch, main]
+
+  - repo: local
+    hooks:
+      - id: registry
+        name: registry
+        entry: make registry
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      - id: bindings
+        name: bindings
+        entry: make bindings
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      - id: lint
+        name: lint
+        entry: make lint
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      - id: types
+        name: types
+        entry: make types
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      - id: test
+        name: test
+        entry: make test
+        language: system
+        pass_filenames: false
+        always_run: true

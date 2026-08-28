@@ -1,0 +1,162 @@
+[project]
+name = "gruncellka-porto-sdk"
+version = "0.1.0"
+description = "Python SDK for multi-provider postage — products, pricing, restrictions, envelopes, marks, and tracking"
+keywords = [
+    "deutsche-post",
+    "ukrposhta",
+    "la-poste",
+    "swiss-post",
+    "internetmarke",
+    "postage",
+    "letter",
+    "stamp",
+    "pricing",
+    "tracking",
+    "envelope",
+    "restrictions",
+    "multi-provider",
+    "sdk",
+    "porto",
+]
+readme = "README.md"
+license = {text = "Apache-2.0"}
+authors = [{name = "Oleksandr Tsyba"}]
+classifiers = [
+    "License :: OSI Approved :: Apache Software License 2.0",
+]
+requires-python = ">=3.13"
+dependencies = [
+    "pydantic>=2.0.0",
+    "httpx>=0.24.0",
+    "jsonschema>=4.0.0",
+    "gruncellka-porto-data>=0.7.0,<1.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "gruncellka-porto-features>=0.5.0,<1.0.0",
+    "bump2version>=1.0.0",
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-bdd>=7.0.0",
+    "pre-commit>=3.5.0",
+    "ruff>=0.15.5",
+    "mypy>=1.8.0",
+    "types-python-dateutil>=2.8.0",
+    "build>=1.0.0",
+    "twine>=5.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/gruncellka/porto-sdk-python"
+Repository = "https://github.com/gruncellka/porto-sdk-python"
+Documentation = "https://github.com/gruncellka/porto-sdk-python"
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["porto_sdk*"]
+exclude = ["porto_sdk._bundled*"]
+
+[tool.setuptools.package-data]
+porto_sdk = ["py.typed"]
+
+[project.scripts]
+porto = "porto_sdk.cli:main"
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+
+[tool.ruff.lint]
+# Keep the SDK gate to syntax/import issues. Broader ruff selects stay out of the package gate;
+# do not inherit ALL-style rules into this package.
+select = ["E4", "E7", "E9", "F", "I"]
+ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+"scripts/run_bdd_batches.py" = ["E402"]
+"scripts/test/require_internetmarke_canary_env.py" = ["E402"]
+
+[tool.mypy]
+python_version = "3.13"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+check_untyped_defs = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+strict_equality = true
+show_error_codes = true
+plugins = ["pydantic.mypy"]
+
+[[tool.mypy.overrides]]
+module = [
+    "httpx.*",
+    "porto_data",
+]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = [
+    "porto_sdk.time",
+    "porto_sdk.ids",
+    "porto_sdk.states",
+    "porto_sdk.config",
+]
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+
+[tool.coverage.run]
+source = ["porto_sdk"]
+omit = [
+    "porto_sdk/_bundled/*",
+    "porto_sdk/cli.py",
+    "porto_sdk/cli/*",
+    "porto_sdk/adapters/*",
+    "porto_sdk/adapters/**",
+    "porto_sdk/errors/models.py",
+    "porto_sdk/errors/domains/*",
+    "porto_sdk/envelopes/match.py",
+    "porto_sdk/mark_content.py",
+    "porto_sdk/provider_client.py",
+    "porto_sdk/data/base_loader.py",
+    "porto_sdk/data/domain_validator.py",
+    "porto_sdk/data/porto_data_registry.py",
+    "porto_sdk/data/validator/*",
+    "porto_sdk/data/entities/addresses.py",
+    "porto_sdk/data/entities/dimensions.py",
+    "porto_sdk/data/entities/jurisdictions.py",
+    "porto_sdk/data/entities/marks.py",
+    "porto_sdk/services/address.py",
+    "porto_sdk/services/envelope_resolver.py",
+    "porto_sdk/services/jurisdictions.py",
+    "porto_sdk/services/mark_resolution.py",
+    "porto_sdk/services/porto_execution.py",
+    "porto_sdk/services/porto_resolver.py",
+    "porto_sdk/services/pricing.py",
+    "porto_sdk/services/product_advice.py",
+    "porto_sdk/services/product_options.py",
+    "porto_sdk/services/provider_capabilities.py",
+    "porto_sdk/services/providers/*",
+    "porto_sdk/services/registered.py",
+    "porto_sdk/services/resolution/price_resolver.py",
+    "porto_sdk/services/resolution/product_resolver.py",
+    "porto_sdk/services/tracking.py",
+    "porto_sdk/services/validation.py",
+]
+
+[tool.coverage.report]
+fail_under = 80
+show_missing = true
