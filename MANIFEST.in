@@ -1,0 +1,4 @@
+include pyproject.toml README.md LICENSE CHANGELOG.md
+recursive-include porto_sdk *
+global-exclude *.py[cod] __pycache__ .*
+prune tests
