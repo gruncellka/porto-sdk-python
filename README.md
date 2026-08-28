@@ -1,5 +1,8 @@
 # Porto SDK
 
+[![validation](https://github.com/gruncellka/porto-sdk-python/actions/workflows/validation.yml/badge.svg)](https://github.com/gruncellka/porto-sdk-python/actions/workflows/validation.yml)
+[![codecov](https://codecov.io/gh/gruncellka/porto-sdk-python/branch/main/graph/badge.svg)](https://codecov.io/gh/gruncellka/porto-sdk-python)
+
 Cross-provider postal SDK for Python.
 
 Supported providers: Deutsche Post, Ukrposhta, La Poste, and Swiss Post.
