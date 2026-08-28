@@ -1,4 +1,4 @@
-"""Declarative package-content contract for the Python SDK release artifact."""
+"""Declarative package-content contract for the Python SDK release artifacts."""
 
 from __future__ import annotations
 
@@ -12,52 +12,55 @@ class ArtifactContract:
     required_substrings: tuple[str, ...]
     """Paths that must appear (substring match against archive member names)."""
 
-    allowed_prefixes: tuple[str, ...]
-    """Every archive member must start with one of these prefixes (after normalizing)."""
-
     forbidden_top_level: tuple[str, ...]
     """Top-level path segments that must never appear (universal repo junk)."""
 
 
+FORBIDDEN_REPO = (
+    ".env",
+    "tests",
+    "docs",
+    ".github",
+    ".cursor",
+    "scripts",
+    "artifacts",
+    "labs",
+)
+
 # Wheel: porto_sdk/** + *.dist-info/**
-# Sdist: gruncellka_porto_sdk-*/porto_sdk/** + metadata files
 WHEEL = ArtifactContract(
     required_substrings=(
         "porto_sdk/__init__.py",
+        "porto_sdk/py.typed",
         ".dist-info/METADATA",
         ".dist-info/WHEEL",
     ),
-    allowed_prefixes=(
-        "porto_sdk/",
-        # dist-info directory name varies with version
-    ),
-    forbidden_top_level=(
-        ".env",
-        "tests",
-        "docs",
-        ".github",
-        ".cursor",
-        "scripts",
-        "artifacts",
-        "labs",
-    ),
+    forbidden_top_level=FORBIDDEN_REPO,
 )
 
+# Sdist (paths relative to gruncellka_porto_sdk-VERSION/)
 SDIST = ArtifactContract(
     required_substrings=(
         "porto_sdk/__init__.py",
-        "PKG-INFO",
         "pyproject.toml",
+        "README.md",
+        "LICENSE",
+        "CHANGELOG.md",
+        "PKG-INFO",
     ),
-    allowed_prefixes=(),  # validated via allow-rules in verifier for sdist layout
-    forbidden_top_level=(
-        ".env",
-        "tests",
-        "docs",
-        ".github",
-        ".cursor",
-        "scripts",
-        "artifacts",
-        "labs",
-    ),
+    forbidden_top_level=FORBIDDEN_REPO,
+)
+
+# Exact relative paths allowed at sdist root (besides porto_sdk/ and *.egg-info/)
+SDIST_ALLOWED_ROOT_FILES = frozenset(
+    {
+        "pyproject.toml",
+        "README.md",
+        "LICENSE",
+        "CHANGELOG.md",
+        "PKG-INFO",
+        # setuptools may emit a tiny generated setup.cfg into the sdist
+        "setup.cfg",
+        "MANIFEST.in",
+    }
 )
