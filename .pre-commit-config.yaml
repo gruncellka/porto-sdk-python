@@ -5,6 +5,8 @@
 
 fail_fast: false
 
+default_install_hook_types: [pre-commit, commit-msg]
+
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
@@ -29,6 +31,14 @@ repos:
 
   - repo: local
     hooks:
+      - id: commit-msg-length
+        name: commit message length
+        entry: .githooks/commit-msg
+        language: system
+        pass_filenames: true
+        always_run: true
+        stages: [commit-msg]
+
       - id: registry
         name: registry
         entry: make registry

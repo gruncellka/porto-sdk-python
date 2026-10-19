@@ -10,6 +10,7 @@ Python 3.13. Runtime: **porto-data**. Dev/BDD: **porto-features**.
 1. Read [`CONTRIBUTING.md`](../../CONTRIBUTING.md).
 2. Do not swap `execution.json` (billing/execution gates) with `graph.edges.wire` (checkout codes).
 3. Cross-SDK behavior: coordinate with TypeScript; note parity in the PR.
+4. Subject prefer ≤50 characters, hard max 72. Body after a blank line, wrap at 72. `.githooks/commit-msg` rejects a subject or body line over 72, a body that does not follow a blank line, and a trailing period.
 
 Architecture: [sdk.mdc](sdk.mdc).
 

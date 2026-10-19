@@ -16,6 +16,8 @@ Creates `.venv`, installs the package editable with registry (PyPI) dependencies
 
 Hooks run the same leaf jobs as `make check` on every commit (registry, bindings, lint/format, types, test). BDD (`sdk` / `adapters`) and `build` stay in CI / `make validate`.
 
+Subject prefer ≤50 characters, hard max 72. Optional body after a blank line, wrap at 72. `.githooks/commit-msg` rejects a subject or body line over 72, a body that does not follow a blank line, and a trailing period. Re-run `make install-hooks` once so an existing clone picks up that hook.
+
 ## Commands
 
 Before a pull request:
