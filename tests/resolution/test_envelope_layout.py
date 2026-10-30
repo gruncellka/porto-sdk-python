@@ -31,6 +31,30 @@ def test_c5_de_layout_window_and_mark_facts() -> None:
     assert layout["mark"]["type"] == "stamp"
     assert layout["mark"]["size"] == {"width": 37, "height": 20}
     assert layout["mark"]["placement"] == {"x": 155, "y": 0, "width": 74, "height": 40}
+    assert "clearance" not in layout["mark"]
+
+
+def test_dl_de_mark_zone_is_published_frankierzone() -> None:
+    """Catalog SoT: DL Frankierzone 146×0×74×40; clearance omitted (design inset is Licko)."""
+    layout = _client("deutschepost").envelopes.layout(
+        "DL",
+        "DE",
+        "standardbrief",
+        zone_id="domestic",
+    )
+    assert layout["width"] == 220
+    assert layout["height"] == 110
+    assert layout["mark"]["type"] == "stamp"
+    assert layout["mark"]["size"] == {"width": 37, "height": 20}
+    assert layout["mark"]["placement"] == {"x": 146, "y": 0, "width": 74, "height": 40}
+    assert "clearance" not in layout["mark"]
+    mark = _client("deutschepost").envelopes.get_mark(
+        "standardbrief",
+        envelope_id="DL",
+        zone_id="domestic",
+    )
+    assert mark["placement"] == {"x": 146, "y": 0, "width": 74, "height": 40}
+    assert "clearance" not in mark
 
 
 def test_get_mark_returns_size_and_placement() -> None:
