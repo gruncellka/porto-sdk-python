@@ -36,16 +36,24 @@ Execution wiring reads product/checkout codes from `execution.json` instead of `
 - Body: `execution.json = wire + billing/execution methods; graph.edges.wire = checkout codes.`
 - Labels: `architecture`, `integration`
 
+### 5) Tracking time semantics are changed
+
+Tracking code infers a timezone, replaces missing carrier time with poll time, or treats zoneless local time as an instant.
+
+- Bug: `Tracking time semantics are corrupted`
+- Body: `Preserve explicit offsets and zoneless local carrier times. Poll time must stay observation metadata.`
+- Labels: `correctness`, `compatibility`
+
 ## Non-blocking
 
-### 5) Mark geometry hardcoded
+### 6) Mark geometry hardcoded
 
 Mark/stamp IO hardcodes mm/px instead of `marks.calibrations[]` from porto-data.
 
 - Bug: `Mark geometry hardcoded instead of catalog calibrations`
 - Label: `maintainability`
 
-### 6) Untracked TODO/FIXME
+### 7) Untracked TODO/FIXME
 
 TODO/FIXME without issue reference (`#123`).
 
