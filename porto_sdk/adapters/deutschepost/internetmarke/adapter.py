@@ -18,6 +18,7 @@ from ....errors import PortoError, PortoErrorCode
 from ....execution import (
     ExecutionParameters,
     MarkExecution,
+    MarkOutputMime,
     PortoMark,
     ProviderBoundMarkFactory,
     validate_output_mime,
@@ -164,23 +165,13 @@ class InternetmarkeAdapter(ExecutionAdapter, ProviderBoundMarkFactory):
                 total=request.value,
                 execution=opts,
             )
-            return self.new_mark(
-                content=result.link,
-                content_type="application/pdf",
-                amount=request.value,
-                external_id=result.shop_order_id,
-            )
+            return self._marks_from_checkout(result, "application/pdf", [request.value])[0]
         result = await checkout.png(
             positions=[factory.png(line)],
             total=request.value,
             execution=opts,
         )
-        return self.new_mark(
-            content=result.link,
-            content_type="image/png",
-            amount=request.value,
-            external_id=result.shop_order_id,
-        )
+        return self._marks_from_checkout(result, "image/png", [request.value])[0]
 
     async def mark_many(
         self,
@@ -239,30 +230,14 @@ class InternetmarkeAdapter(ExecutionAdapter, ProviderBoundMarkFactory):
                 execution=opts,
             )
             self.last_many_trace = result.trace()
-            return [
-                self.new_mark(
-                    content=result.link,
-                    content_type="application/pdf",
-                    amount=value,
-                    external_id=result.shop_order_id,
-                )
-                for value in values
-            ]
+            return self._marks_from_checkout(result, "application/pdf", values)
         result = await checkout.png(
             positions=[factory.png(line) for line in lines],
             total=total,
             execution=opts,
         )
         self.last_many_trace = result.trace()
-        return [
-            self.new_mark(
-                content=result.link,
-                content_type="image/png",
-                amount=value,
-                external_id=result.shop_order_id,
-            )
-            for value in values
-        ]
+        return self._marks_from_checkout(result, "image/png", values)
 
     def _bind_execution(
         self,
@@ -365,20 +340,53 @@ class InternetmarkeAdapter(ExecutionAdapter, ProviderBoundMarkFactory):
             billing_model="prepaid",
         )
 
+    def _marks_from_checkout(
+        self, result, content_type: MarkOutputMime, amounts: list[int]
+    ) -> list[PortoMark]:
+        """Identity from checkout. Never invents a carrier PortoStatus."""
+        from ....provider_payload import sanitize_provider_payload
+
+        payload = result.response if isinstance(result.response, dict) else {}
+        sanitized = sanitize_provider_payload(payload)
+        raw_cart = sanitized if isinstance(sanitized, dict) else {}
+        vouchers = payload.get("voucherList")
+        if not isinstance(vouchers, list):
+            vouchers = []
+        marks: list[PortoMark] = []
+        for index, amount in enumerate(amounts):
+            voucher = (
+                vouchers[index]
+                if index < len(vouchers) and isinstance(vouchers[index], dict)
+                else {}
+            )
+            track_id = str(voucher.get("trackId") or "").strip()
+            raw = dict(raw_cart)
+            if len(amounts) > 1:
+                raw["voucherIndex"] = index
+            marks.append(
+                self.new_mark(
+                    content=result.link,
+                    content_type=content_type,
+                    amount=amount,
+                    external_id=result.shop_order_id,
+                    tracking_number=track_id or None,
+                    provider_raw=raw or None,
+                )
+            )
+        return marks
+
     async def track_stamp(self, tracking_number: str) -> TrackingStatus:
-        raise PortoError(
-            "Tracking not available for INTERNETMARKE stamps",
-            PortoErrorCode.PORTO_TRACKING_UNSUPPORTED,
-            provider="deutschepost",
-            wire="internetmarke",
-            details={
-                "provider_id": "deutschepost",
-                "wire": "internetmarke",
-                "tracking_kind": "stamp",
-                "tracking_number": tracking_number,
-            },
-            retryable=False,
+        import warnings
+
+        warnings.warn(
+            "track_stamp is deprecated; use ProviderClient.track.get",
+            DeprecationWarning,
+            stacklevel=2,
         )
+        from ...tracking.adapter import get_tracking_adapter
+
+        adapter = get_tracking_adapter(self.provider_id, wire_id="internetmarke")
+        return await adapter.track(tracking_number)
 
     def normalize_document(self, payload: bytes) -> bytes:
         return normalize_document_payload(payload)

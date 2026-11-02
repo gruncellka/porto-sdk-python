@@ -5,11 +5,12 @@ from __future__ import annotations
 import hashlib
 from abc import ABC, abstractmethod
 from datetime import UTC, datetime
-from typing import Literal
+from typing import Literal, NamedTuple
 
 from ...errors import PortoError, PortoErrorCode
-from ...types import TrackingEvent, TrackingState, TrackingStatus
+from ...types import PortoStatus, TrackingEvent, TrackingStatus
 from .acl import map_native_status
+from .time import normalize_occurred_at
 
 TrackingKind = Literal["shipment", "stamp"]
 
@@ -22,9 +23,21 @@ def build_event_id(
     provider_id: str,
     tracking_number: str,
     provider_code: str,
-    occurred_at: str,
+    *,
+    native_id: object | None = None,
+    native_sequence: object | None = None,
+    native_index: int | None = None,
+    occurred_at: str | None = None,
 ) -> str:
-    raw = f"{provider_id}:{tracking_number}:{provider_code}:{occurred_at}"
+    if native_id is not None and str(native_id).strip():
+        discriminator = f"id:{str(native_id).strip()}"
+    elif native_sequence is not None and str(native_sequence).strip():
+        discriminator = f"sequence:{str(native_sequence).strip()}"
+    elif native_index is not None:
+        discriminator = f"index:{native_index}:time:{occurred_at or ''}"
+    else:
+        discriminator = f"time:{occurred_at or ''}"
+    raw = f"{provider_id}:{tracking_number}:{provider_code}:{discriminator}"
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:32]
 
 
@@ -101,21 +114,32 @@ def map_event(
     tracking_number: str,
     native_code: str,
     native_label: str | None,
-    occurred_at: str,
+    occurred_at: object | None,
     received_at: str,
+    native_id: object | None = None,
+    native_sequence: object | None = None,
+    native_index: int | None = None,
     location: str | None = None,
     description: str | None = None,
 ) -> TrackingEvent:
     status = map_native_status(provider_id, native_code)
-    if status is None:
-        status = TrackingState.IN_TRANSIT
-    event_id = build_event_id(provider_id, tracking_number, native_code, occurred_at)
+    occurred = normalize_occurred_at(occurred_at)
+    event_id = build_event_id(
+        provider_id,
+        tracking_number,
+        native_code,
+        native_id=native_id,
+        native_sequence=native_sequence,
+        native_index=native_index,
+        occurred_at=occurred.value if occurred else None,
+    )
     return TrackingEvent(
         event_id=event_id,
         provider_id=provider_id,
         provider_code=native_code,
         provider_label=native_label,
-        occurred_at=occurred_at,
+        occurred_at=occurred.value if occurred else None,
+        occurred_kind=occurred.kind if occurred else None,
         received_at=received_at,
         status=status,
         location=location,
@@ -123,15 +147,66 @@ def map_event(
     )
 
 
+class TrackingAssembly(NamedTuple):
+    status: PortoStatus | None
+    last_update: str | None
+    status_changed_at: str | None
+    location: str | None
+
+
+def assemble_tracking(history: list[TrackingEvent]) -> TrackingAssembly:
+    """Derive a snapshot from events already arranged in provider chronology."""
+    latest = history[-1] if history else None
+    mapped = [event for event in history if event.status is not None]
+    current = mapped[-1] if mapped else None
+    changed = current
+    if current is not None:
+        for event in reversed(mapped[:-1]):
+            if event.status != current.status:
+                break
+            changed = event
+    return TrackingAssembly(
+        status=current.status if current else None,
+        last_update=latest.occurred_at if latest else None,
+        status_changed_at=changed.occurred_at if changed else None,
+        location=latest.location if latest else None,
+    )
+
+
+SHIPMENT_WIRE_ID = "shipment"
+
+
+def tracking_wire_id(wires: object | None) -> str | None:
+    """Explicit shipment wire only. Missing or blank config is not a live alias."""
+    if not isinstance(wires, dict) or SHIPMENT_WIRE_ID not in wires:
+        return None
+    wire = wires[SHIPMENT_WIRE_ID]
+    base = str(getattr(wire, "base_url", None) or "").strip()
+    if not base:
+        return None
+    return SHIPMENT_WIRE_ID
+
+
 def get_tracking_adapter(
     provider_id: str,
     *,
     wire_id: str | None = None,
     data_path: str | None = None,
+    base_url: str | None = None,
+    http_client: object | None = None,
 ) -> TrackingAdapter:
-    """Resolve tracking adapter for a bound provider execution context."""
+    """Resolve a tracking adapter from an explicit tracking wire, not the execution wire."""
+    del data_path
     provider = provider_id.strip().lower()
     wire = (wire_id or "").strip().lower()
+
+    if not wire:
+        return UnsupportedTrackingAdapter(
+            provider,
+            wire="none",
+            tracking_kind="shipment",
+            reason="No tracking wire is configured.",
+        )
 
     if provider == "deutschepost" and wire == "internetmarke":
         return UnsupportedTrackingAdapter(
@@ -142,6 +217,22 @@ def get_tracking_adapter(
                 "Internetmarke stamp marks do not support shipment tracking. "
                 "Use a Sendungsverfolgung wire when available."
             ),
+        )
+
+    if provider == "deutschepost" and wire == SHIPMENT_WIRE_ID:
+        base = (base_url or "").strip()
+        if not base:
+            return UnsupportedTrackingAdapter(
+                provider,
+                wire=SHIPMENT_WIRE_ID,
+                tracking_kind="shipment",
+                reason="Shipment tracking requires an explicit base URL.",
+            )
+        from ..deutschepost.tracking.shipment import Adapter as Shipment
+
+        return Shipment(
+            base_url=base,
+            http_client=http_client,
         )
 
     return StubTrackingAdapter(provider, tracking_kind="shipment")

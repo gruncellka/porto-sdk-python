@@ -38,6 +38,7 @@ def test_status_map_literals_live_under_provider_adapters() -> None:
     tracking = _SDK / "adapters" / "tracking"
     for path in tracking.rglob("*.py"):
         text = path.read_text(encoding="utf-8")
+        assert "PortoStatus.CREATED" not in text, f"map literal leaked into {path.name}"
         assert "TrackingState.CREATED" not in text, f"map literal leaked into {path.name}"
         assert "STATUS_MAP" not in text or "from .." in text or path.name == "acl.py"
 

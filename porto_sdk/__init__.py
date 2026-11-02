@@ -58,7 +58,15 @@ from .services.restrictions import (
     RoutingRestriction,
 )
 from .states import CapabilityState
-from .types import Address, Dimensions, TrackingStatus
+from .types import (
+    Address,
+    Dimensions,
+    OccurredKind,
+    PortoStatus,
+    TrackingEvent,
+    TrackingState,
+    TrackingStatus,
+)
 
 __all__ = [
     "Address",
@@ -87,6 +95,7 @@ __all__ = [
     "MarkType",
     "MarkOutputMime",
     "NoMatch",
+    "OccurredKind",
     "Porto",
     "PortoClient",
     "PortoConfig",
@@ -94,6 +103,7 @@ __all__ = [
     "PortoErrorCode",
     "PortoMark",
     "PortoMarkRequest",
+    "PortoStatus",
     "PriceComponent",
     "PriceInput",
     "Pricing",
@@ -113,6 +123,8 @@ __all__ = [
     "ServiceKind",
     "StrictMatch",
     "TrackingMode",
+    "TrackingEvent",
+    "TrackingState",
     "TrackingStatus",
     "TransportConfig",
     "WireConfig",

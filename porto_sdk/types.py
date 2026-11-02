@@ -102,13 +102,21 @@ class MarkRequest(BaseModel):
     wire_code: int | str | None = None  # internal catalog product code for the active wire
 
 
-class TrackingState(str, Enum):
+class PortoStatus(str, Enum):
+    """Normalized carrier status. Not mark existence, and not an unknown bucket."""
+
     CREATED = "created"
-    IN_TRANSIT = "in_transit"
-    OUT_FOR_DELIVERY = "out_for_delivery"
+    TRANSIT = "transit"
+    DELIVERY = "delivery"
     DELIVERED = "delivered"
     RETURNED = "returned"
     UNDELIVERABLE = "undeliverable"
+
+
+# Deprecated alias. Remove in 0.3+.
+TrackingState = PortoStatus
+
+OccurredKind = Literal["offset", "local"]
 
 
 class TrackingEvent(BaseModel):
@@ -116,9 +124,10 @@ class TrackingEvent(BaseModel):
     provider_id: str
     provider_code: str | None = None
     provider_label: str | None = None
-    occurred_at: str
+    occurred_at: str | None = None
+    occurred_kind: OccurredKind | None = None
     received_at: str
-    status: TrackingState
+    status: PortoStatus | None = None
     location: str | None = None
     description: str | None = None
 
@@ -127,10 +136,12 @@ class TrackingStatus(BaseModel):
     tracking_number: str
     provider_id: str
     tracking_kind: Literal["shipment", "stamp"]
-    status: TrackingState
-    last_update: str
+    status: PortoStatus | None = None
+    last_update: str | None = None
+    status_changed_at: str | None = None
     poll_received_at: str
     location: str | None = None
     next_steps: list[str] | None = None
     estimated_delivery: str | None = None
     history: list[TrackingEvent] = []
+    provider_raw: dict | None = None

@@ -220,17 +220,22 @@ def get_tracking_adapter(
     wires: dict[str, WireConfig] | None,
     env: dict[str, str] | None = None,
     data_path: str | None = None,
+    *,
+    http_client=None,
 ):
-    """Resolve tracking adapter (TrackingAdapter) for the active wire."""
-    del env  # credentials live on wires; tracking stubs do not need env yet
+    """Resolve tracking adapter from an explicit shipment wire, not the execution wire."""
+    del env, data_path
     from .tracking.adapter import get_tracking_adapter as resolve_tracking_adapter
+    from .tracking.adapter import tracking_wire_id
 
     provider = provider_id.strip().lower()
-    wire_id = resolve_active_wire_for(provider, wires, data_path) or get_default_wire_id(
-        provider, data_path
-    )
+    wire_id = tracking_wire_id(wires)
+    base_url = None
+    if wire_id and wires and wire_id in wires:
+        base_url = wires[wire_id].base_url
     return resolve_tracking_adapter(
         provider,
         wire_id=wire_id,
-        data_path=data_path,
+        base_url=base_url,
+        http_client=http_client,
     )

@@ -7,13 +7,16 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
 from .adapters.execution_registry import (
-    get_default_wire_id,
     get_execution_adapter,
-    resolve_active_wire_for,
     supports_billing,
     supports_execution,
 )
-from .adapters.tracking.adapter import TrackingAdapter, TrackingKind, get_tracking_adapter
+from .adapters.tracking.adapter import (
+    TrackingAdapter,
+    TrackingKind,
+    get_tracking_adapter,
+    tracking_wire_id,
+)
 from .config import ProviderRuntimeConfig, normalize_provider_id
 from .data.domain_validator import DomainIds
 from .data.loader import PortoDataLoader
@@ -70,12 +73,6 @@ class ProviderClient:
         validator = DomainIds(data_loader)
         porto_resolver = resolver
 
-        wire_id = resolve_active_wire_for(
-            self.provider_id,
-            runtime.wires,
-            data_path,
-        ) or get_default_wire_id(self.provider_id, data_path)
-
         self._execution_adapter = get_execution_adapter(
             self.provider_id,
             runtime.wires,
@@ -87,9 +84,15 @@ class ProviderClient:
             from .services.jurisdictions import JurisdictionsService
 
             bind(JurisdictionsService(data_loader).country_code_3)
+        track_wire = tracking_wire_id(runtime.wires)
+        track_base = None
+        if track_wire and runtime.wires and track_wire in runtime.wires:
+            track_base = runtime.wires[track_wire].base_url
         self._tracking_adapter: TrackingAdapter = get_tracking_adapter(
             self.provider_id,
-            wire_id=wire_id,
+            wire_id=track_wire,
+            base_url=track_base,
+            http_client=getattr(root, "_http_client", None),
             data_path=data_path,
         )
 

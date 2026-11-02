@@ -166,6 +166,7 @@ class PortoClient:
             provider,
             wires,
             data_path=data_path,
+            http_client=self._http_client,
         )
         self._datafactory_api = get_address_adapter(
             provider,
