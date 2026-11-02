@@ -204,6 +204,13 @@ def _sigint_handler(_signum: int, _frame: object) -> None:
     raise KeyboardInterrupt
 
 
+def _feature_path_for_batch(features_path: Path, batch: BddBatch) -> Path | None:
+    if not batch.feature_glob:
+        return None
+    tree = "adapters" if batch.group == BddBatchGroup.ADAPTERS else "sdk"
+    return features_path / "features" / tree / batch.feature_glob
+
+
 def run_batch(
     batch: BddBatch,
     *,
@@ -212,8 +219,39 @@ def run_batch(
     run_dir: Path,
     reporter: Reporter,
     verbose: bool = False,
+    features_path: Path | None = None,
 ) -> BatchResult:
     global _ACTIVE_PROC
+
+    feature_path = (
+        _feature_path_for_batch(features_path, batch) if features_path is not None else None
+    )
+    if feature_path is not None and not feature_path.is_file():
+        reporter.begin_batch()
+        result = BatchResult(
+            batch_id=batch.id,
+            label=batch.label,
+            passed=0,
+            failed=0,
+            skipped=1,
+            errors=0,
+            duration_s=0.0,
+            exit_code=0,
+            failed_tests=[],
+            scenarios=[
+                ScenarioResult(
+                    name=f"missing {batch.feature_glob}",
+                    status="skipped",
+                    message=f"Feature not in installed porto-features yet: {feature_path}",
+                )
+            ],
+            junit_path=None,
+            interrupted=False,
+            in_scope=0,
+            deselected=0,
+        )
+        reporter.print_batch_scenarios(result)
+        return result
 
     batch_env = _apply_batch_env(env, batch)
 
@@ -315,6 +353,7 @@ def run_batches(
                 run_dir=run_dir,
                 reporter=reporter,
                 verbose=verbose,
+                features_path=features_path,
             )
             reporter.batch_close(result)
             results.append(result)
