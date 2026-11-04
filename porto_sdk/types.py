@@ -125,7 +125,7 @@ class TrackingEvent(BaseModel):
 class TrackingStatus(BaseModel):
     tracking_number: str
     provider_id: str
-    tracking_kind: Literal["letter", "stamp"]
+    tracking_kind: Literal["label", "stamp"]
     status: PortoStatus | None = None
     last_update: str | None = None
     status_changed_at: str | None = None
