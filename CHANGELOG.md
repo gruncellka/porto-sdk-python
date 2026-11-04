@@ -2,6 +2,8 @@
 
 [Unreleased]
 
+## 0.2.0
+
 ### Added
 
 - `feature_kinds` on `Porto`, `PortoMark`, and `ServiceOption` lists the feature kinds of the purchased service.
