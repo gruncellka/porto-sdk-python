@@ -2,29 +2,28 @@
 
 [Unreleased]
 
-## 0.2.0
+## 0.2.0 - 2026-11-04
 
 ### Added
 
-- `feature_kinds` on `Porto`, `PortoMark`, and `ServiceOption` lists the feature kinds of the purchased service.
-- `PortoStatus` as the normalized carrier status.
-- `statuses.json` set-parity (contract only; no runtime JSON). `PortoStatus` is generated from that catalog.
-- Optional opaque, sanitized `provider_raw` on `PortoMark` and `TrackingStatus`.
-- Deutsche Post live tracking only on the explicit `shipment` wire with a base URL. Internetmarke is not a tracking wire and does not invent `created`.
-- `last_update` is the latest carrier event time, while `status_changed_at` marks the start of the current normalized status run.
+- `feature_kinds` on `Porto`, `PortoMark`, and `ServiceOption` lists the kinds of the purchased service.
+- `PortoStatus` is the normalized carrier status, generated from `statuses.json`.
+- `provider_raw` on `PortoMark` and `TrackingStatus` is a sanitized opaque payload.
+- Deutsche Post tracks on the `shipment` wire when a base URL is set. Internetmarke does not poll.
+- `last_update` is the latest carrier event time, and `status_changed_at` starts the current status.
 
 ### Changed
 
-- Drop public `tracking_kind`. A tracking number plus `capabilities.track` is enough. The Deutsche Post wire id stays `shipment`.
-- Unknown native status codes remain unmapped; they are not coerced to `transit`, and there is no `UNKNOWN` member.
-- Carrier event times preserve explicit offsets or zoneless local semantics through `occurred_kind`; poll time never substitutes for carrier time.
-- Tracking event identity prefers provider-native ids and sequences, and provider chronology owns event order.
+- `tracking_kind` is gone. A tracking number and `capabilities.track` are enough, and the wire id stays `shipment`.
+- Unknown native codes stay unmapped: no `UNKNOWN`, and no coercion to `transit`.
+- `occurred_kind` keeps an explicit offset or a zoneless local time. Poll time is not carrier time.
+- Event identity prefers provider ids and sequences, and provider chronology owns the order.
 
 ### Deprecated
 
-- `TrackingState`; use `PortoStatus`. The alias remains through 0.2.x.
-- `track_stamp`; use `ProviderClient.track` on the `shipment` wire when a base URL is set.
+- `TrackingState` remains through 0.2.x. Use `PortoStatus`.
+- `track_stamp` remains. Use `ProviderClient.track` on the `shipment` wire.
 
-## 0.1.0
+## 0.1.0 - 2026-08-28
 
 Initial release
