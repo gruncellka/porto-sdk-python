@@ -13,7 +13,7 @@ from porto_sdk.data.domain_validator import DomainIds
 from porto_sdk.data.loader import PortoDataLoader
 from porto_sdk.errors import PortoError, PortoErrorCode
 from porto_sdk.execution import ExecutionParameters, MarkExecution, build_porto_mark
-from porto_sdk.services.feature_kinds import feature_kinds_for_service_ids
+from porto_sdk.services.feature_kinds import kinds_for_services
 from porto_sdk.services.porto_execution import PortoExecution
 from porto_sdk.services.porto_resolver import PortoResolver, ResolutionRequest
 from porto_sdk.types import MarkRequest, TrackingStatus
@@ -116,17 +116,34 @@ def test_options_list_kinds_before_purchase(porto_data_path: str) -> None:
 
 def test_missing_feature_id_fails_closed() -> None:
     with pytest.raises(PortoError) as exc:
-        feature_kinds_for_service_ids(_MissingFeature(), ["einschreiben"])
+        kinds_for_services(_MissingFeature(), ["einschreiben"])
     assert exc.value.code == PortoErrorCode.PORTO_DATA_INVALID
     assert exc.value.details["service_id"] == "einschreiben"
     assert exc.value.details["feature_id"] == "missing_feature"
 
 
 def test_duplicate_kinds_collapse() -> None:
-    kinds = feature_kinds_for_service_ids(
-        _DuplicateKinds(), ["einschreiben", "einschreiben_einwurf"]
-    )
+    kinds = kinds_for_services(_DuplicateKinds(), ["einschreiben", "einschreiben_einwurf"])
     assert kinds == ["tracking"]
+
+
+def test_skips_blanks_and_unknown_service_fails() -> None:
+    class _Loader:
+        def get_service(self, service_id: str):
+            if service_id == "plain":
+                return type("Service", (), {"features": ("", "sendungsnummer")})()
+            return None
+
+        def get_feature(self, feature_id: str):
+            if feature_id == "sendungsnummer":
+                return type("Feature", (), {"kind": "tracking"})()
+            return None
+
+    assert kinds_for_services(_Loader(), None) == []
+    assert kinds_for_services(_Loader(), ["", "  ", "plain"]) == ["tracking"]
+    with pytest.raises(PortoError) as exc:
+        kinds_for_services(_Loader(), ["missing"])
+    assert exc.value.details["service_id"] == "missing"
 
 
 def test_proof_subset_excludes_tracking() -> None:

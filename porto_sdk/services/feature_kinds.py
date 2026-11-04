@@ -8,7 +8,7 @@ from ..errors.domains.data import raise_data_invalid
 from ..kinds import FeatureKind
 
 
-def feature_kinds_for_service_ids(
+def kinds_for_services(
     loader: Any,
     service_ids: Sequence[str] | None,
 ) -> list[FeatureKind]:
