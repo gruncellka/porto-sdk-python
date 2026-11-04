@@ -5,8 +5,9 @@ import pytest
 from porto_sdk import PortoClient, PortoConfig
 from porto_sdk.adapters.execution_registry import supports_billing, supports_execution
 from porto_sdk.adapters.unavailable_execution import UnavailableExecutionAdapter
-from porto_sdk.config import ProviderRuntimeConfig
+from porto_sdk.config import ProviderRuntimeConfig, WireConfig
 from porto_sdk.errors import PortoError, PortoErrorCode
+from porto_sdk.states import CapabilityState
 from tests.support.bound_provider import bound_provider
 
 
@@ -14,6 +15,7 @@ from tests.support.bound_provider import bound_provider
 def test_supports_methods_from_porto_data_manifest() -> None:
     assert supports_billing("deutschepost", "wallet")
     assert supports_execution("deutschepost", "mark")
+
 
 @pytest.mark.offline
 def test_swisspost_has_no_internetmarke_execution_methods() -> None:
@@ -40,3 +42,22 @@ async def test_unavailable_execution_adapter_fails_clearly() -> None:
     assert exc.value.code == PortoErrorCode.PORTO_CAPABILITY_UNSUPPORTED
     assert exc.value.details["capability"] == "wallet"
     assert exc.value.provider == "swisspost"
+
+
+@pytest.mark.offline
+def test_shipment_wire_enables_letter_tracking() -> None:
+    without = PortoClient().provider("deutschepost").capabilities()
+    assert without.track is CapabilityState.UNSUPPORTED
+
+    client = PortoClient(
+        PortoConfig(
+            providers={
+                "deutschepost": ProviderRuntimeConfig(
+                    wires={"shipment": WireConfig(base_url="https://track.example")}
+                )
+            }
+        )
+    )
+    caps = client.provider("deutschepost").capabilities()
+    assert caps.track is CapabilityState.READY
+    assert caps.tracking_kind == "letter"

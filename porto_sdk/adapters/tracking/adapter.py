@@ -12,7 +12,7 @@ from ...types import PortoStatus, TrackingEvent, TrackingStatus
 from .acl import map_native_status
 from .time import normalize_occurred_at
 
-TrackingKind = Literal["shipment", "stamp"]
+TrackingKind = Literal["letter", "stamp"]
 
 
 def _iso_now() -> str:
@@ -88,7 +88,7 @@ class UnsupportedTrackingAdapter(TrackingAdapter):
 class StubTrackingAdapter(TrackingAdapter):
     """Stub adapter with ACL maps — supports_tracking=false until live HTTP ships."""
 
-    def __init__(self, provider_id: str, *, tracking_kind: TrackingKind = "shipment") -> None:
+    def __init__(self, provider_id: str, *, tracking_kind: TrackingKind = "letter") -> None:
         self.provider_id = provider_id.strip().lower()
         self.tracking_kind = tracking_kind
         self.supports_tracking = False
@@ -173,6 +173,7 @@ def assemble_tracking(history: list[TrackingEvent]) -> TrackingAssembly:
     )
 
 
+# Provider wire key (Deutsche Post Sendungsverfolgung). Not the public tracking kind.
 SHIPMENT_WIRE_ID = "shipment"
 
 
@@ -204,7 +205,7 @@ def get_tracking_adapter(
         return UnsupportedTrackingAdapter(
             provider,
             wire="none",
-            tracking_kind="shipment",
+            tracking_kind="letter",
             reason="No tracking wire is configured.",
         )
 
@@ -214,7 +215,7 @@ def get_tracking_adapter(
             wire="internetmarke",
             tracking_kind="stamp",
             reason=(
-                "Internetmarke stamp marks do not support shipment tracking. "
+                "Internetmarke stamp marks do not support letter tracking. "
                 "Use a Sendungsverfolgung wire when available."
             ),
         )
@@ -225,8 +226,8 @@ def get_tracking_adapter(
             return UnsupportedTrackingAdapter(
                 provider,
                 wire=SHIPMENT_WIRE_ID,
-                tracking_kind="shipment",
-                reason="Shipment tracking requires an explicit base URL.",
+                tracking_kind="letter",
+                reason="Letter tracking requires an explicit base URL.",
             )
         from ..deutschepost.tracking.shipment import Adapter as Shipment
 
@@ -235,4 +236,4 @@ def get_tracking_adapter(
             http_client=http_client,
         )
 
-    return StubTrackingAdapter(provider, tracking_kind="shipment")
+    return StubTrackingAdapter(provider, tracking_kind="letter")

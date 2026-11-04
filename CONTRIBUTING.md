@@ -46,7 +46,7 @@ make validate
 
 Committed manifests use PyPI ranges only. Local overlays (if any) are applied from outside this repository — this SDK does not detect or wire sibling checkouts.
 
-Error codes are authored in porto-features (`errors.json`). Do not hand-edit `porto_sdk/errors/codes.py`. After catalog changes: `make sync-bindings`, then commit. `make check` runs `make bindings`.
+Error codes are authored in porto-features (`errors.json`). Do not hand-edit `porto_sdk/errors/codes.py`. Status codes are authored in `statuses.json`. Do not hand-edit `porto_sdk/statuses.py`. After catalog changes: `make sync-bindings`, then commit. `make check` runs `make bindings`. Missing `statuses.json` in a published features package skips the status binding check.
 
 ## Pull requests
 

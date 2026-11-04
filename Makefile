@@ -42,9 +42,11 @@ registry:
 
 sync-bindings: .
 	@$(PYTHON) scripts/build/build_error_bindings.py
+	@$(PYTHON) scripts/build/build_status_bindings.py
 
 bindings: .
 	@$(PYTHON) scripts/build/build_error_bindings.py --check
+	@$(PYTHON) scripts/build/build_status_bindings.py --check
 
 lint: .
 	@.venv/bin/ruff check porto_sdk scripts tests

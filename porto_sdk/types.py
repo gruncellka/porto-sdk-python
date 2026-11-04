@@ -2,10 +2,11 @@
 Core type definitions for Porto SDK
 """
 
-from enum import Enum
 from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator
+
+from .statuses import PortoStatus
 
 
 class Dimensions(BaseModel):
@@ -102,17 +103,6 @@ class MarkRequest(BaseModel):
     wire_code: int | str | None = None  # internal catalog product code for the active wire
 
 
-class PortoStatus(str, Enum):
-    """Normalized carrier status. Not mark existence, and not an unknown bucket."""
-
-    CREATED = "created"
-    TRANSIT = "transit"
-    DELIVERY = "delivery"
-    DELIVERED = "delivered"
-    RETURNED = "returned"
-    UNDELIVERABLE = "undeliverable"
-
-
 # Deprecated alias. Remove in 0.3+.
 TrackingState = PortoStatus
 
@@ -135,7 +125,7 @@ class TrackingEvent(BaseModel):
 class TrackingStatus(BaseModel):
     tracking_number: str
     provider_id: str
-    tracking_kind: Literal["shipment", "stamp"]
+    tracking_kind: Literal["letter", "stamp"]
     status: PortoStatus | None = None
     last_update: str | None = None
     status_changed_at: str | None = None
