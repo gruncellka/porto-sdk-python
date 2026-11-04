@@ -60,4 +60,3 @@ def test_shipment_wire_enables_letter_tracking() -> None:
     )
     caps = client.provider("deutschepost").capabilities()
     assert caps.track is CapabilityState.READY
-    assert caps.tracking_kind == "label"

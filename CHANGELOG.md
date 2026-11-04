@@ -12,7 +12,7 @@
 
 ### Changed
 
-- Public tracking kind is `label` or `stamp` (porto-data `mark_type`). The Deutsche Post wire id stays `shipment`.
+- Drop public `tracking_kind`. A tracking number plus `capabilities.track` is enough. The Deutsche Post wire id stays `shipment`.
 - Unknown native status codes remain unmapped; they are not coerced to `transit`, and there is no `UNKNOWN` member.
 - Carrier event times preserve explicit offsets or zoneless local semantics through `occurred_kind`; poll time never substitutes for carrier time.
 - Tracking event identity prefers provider-native ids and sequences, and provider chronology owns event order.
@@ -20,7 +20,7 @@
 ### Deprecated
 
 - `TrackingState`; use `PortoStatus`. The alias remains through 0.2.x.
-- `track_stamp`; use label tracking on the `shipment` wire when a base URL is set.
+- `track_stamp`; use `ProviderClient.track` on the `shipment` wire when a base URL is set.
 
 ## 0.1.0
 

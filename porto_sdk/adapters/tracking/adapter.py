@@ -5,14 +5,12 @@ from __future__ import annotations
 import hashlib
 from abc import ABC, abstractmethod
 from datetime import UTC, datetime
-from typing import Literal, NamedTuple
+from typing import NamedTuple
 
 from ...errors import PortoError, PortoErrorCode
 from ...types import PortoStatus, TrackingEvent, TrackingStatus
 from .acl import map_native_status
 from .time import normalize_occurred_at
-
-TrackingKind = Literal["label", "stamp"]
 
 
 def _iso_now() -> str:
@@ -44,7 +42,6 @@ def build_event_id(
 class TrackingAdapter(ABC):
     provider_id: str
     supports_tracking: bool
-    tracking_kind: TrackingKind
 
     @abstractmethod
     async def track(self, tracking_number: str) -> TrackingStatus:
@@ -52,19 +49,17 @@ class TrackingAdapter(ABC):
 
 
 class UnsupportedTrackingAdapter(TrackingAdapter):
-    """Explicit unsupported tracking for a provider wire (e.g. Internetmarke stamp)."""
+    """Explicit unsupported tracking for a provider wire."""
 
     def __init__(
         self,
         provider_id: str,
         *,
         wire: str = "none",
-        tracking_kind: TrackingKind = "stamp",
         reason: str | None = None,
     ) -> None:
         self.provider_id = provider_id.strip().lower()
         self.wire = wire
-        self.tracking_kind: TrackingKind = tracking_kind
         self.supports_tracking = False
         self._reason = reason or "Tracking is not supported for this provider wire."
 
@@ -78,7 +73,6 @@ class UnsupportedTrackingAdapter(TrackingAdapter):
             details={
                 "provider_id": self.provider_id,
                 "wire": self.wire,
-                "tracking_kind": self.tracking_kind,
                 "tracking_number": tracking_number,
             },
             retryable=False,
@@ -88,9 +82,8 @@ class UnsupportedTrackingAdapter(TrackingAdapter):
 class StubTrackingAdapter(TrackingAdapter):
     """Stub adapter with ACL maps — supports_tracking=false until live HTTP ships."""
 
-    def __init__(self, provider_id: str, *, tracking_kind: TrackingKind = "label") -> None:
+    def __init__(self, provider_id: str) -> None:
         self.provider_id = provider_id.strip().lower()
-        self.tracking_kind = tracking_kind
         self.supports_tracking = False
 
     async def track(self, tracking_number: str) -> TrackingStatus:
@@ -101,7 +94,6 @@ class StubTrackingAdapter(TrackingAdapter):
             provider=self.provider_id,
             details={
                 "provider_id": self.provider_id,
-                "tracking_kind": self.tracking_kind,
                 "tracking_number": tracking_number,
             },
             retryable=False,
@@ -173,7 +165,7 @@ def assemble_tracking(history: list[TrackingEvent]) -> TrackingAssembly:
     )
 
 
-# Provider wire key (Deutsche Post Sendungsverfolgung). Not the public tracking kind.
+# Provider wire key (Deutsche Post Sendungsverfolgung).
 SHIPMENT_WIRE_ID = "shipment"
 
 
@@ -205,7 +197,6 @@ def get_tracking_adapter(
         return UnsupportedTrackingAdapter(
             provider,
             wire="none",
-            tracking_kind="label",
             reason="No tracking wire is configured.",
         )
 
@@ -213,10 +204,9 @@ def get_tracking_adapter(
         return UnsupportedTrackingAdapter(
             provider,
             wire="internetmarke",
-            tracking_kind="stamp",
             reason=(
-                "Internetmarke stamp marks do not support label tracking. "
-                "Use a Sendungsverfolgung wire when available."
+                "The internetmarke wire does not poll tracking events. "
+                "Use the shipment wire when a base URL is set."
             ),
         )
 
@@ -226,8 +216,7 @@ def get_tracking_adapter(
             return UnsupportedTrackingAdapter(
                 provider,
                 wire=SHIPMENT_WIRE_ID,
-                tracking_kind="label",
-                reason="Label tracking requires an explicit base URL.",
+                reason="Tracking requires an explicit shipment base URL.",
             )
         from ..deutschepost.tracking.shipment import Adapter as Shipment
 
@@ -236,4 +225,4 @@ def get_tracking_adapter(
             http_client=http_client,
         )
 
-    return StubTrackingAdapter(provider, tracking_kind="label")
+    return StubTrackingAdapter(provider)

@@ -89,7 +89,7 @@ def test_dp_pre_transit_maps_to_created() -> None:
 def test_tracking_wire_resolution() -> None:
     stamp = get_tracking_adapter("deutschepost", wire_id="internetmarke")
     assert isinstance(stamp, UnsupportedTrackingAdapter)
-    assert stamp.tracking_kind == "stamp"
+    assert stamp.wire == "internetmarke"
 
     missing = get_tracking_adapter("deutschepost", wire_id="")
     assert isinstance(missing, UnsupportedTrackingAdapter)
@@ -233,4 +233,4 @@ async def test_track_stamp_delegates_to_unsupported() -> None:
         with pytest.raises(PortoError) as exc:
             await adapter.track_stamp("AB")
     assert exc.value.code is PortoErrorCode.PORTO_TRACKING_UNSUPPORTED
-    assert exc.value.details["tracking_kind"] == "stamp"
+    assert exc.value.details["wire"] == "internetmarke"

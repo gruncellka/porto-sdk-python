@@ -13,7 +13,6 @@ from .adapters.execution_registry import (
 )
 from .adapters.tracking.adapter import (
     TrackingAdapter,
-    TrackingKind,
     get_tracking_adapter,
     tracking_wire_id,
 )
@@ -44,7 +43,6 @@ class ProviderCapabilities:
     mark: CapabilityState
     wallet: CapabilityState
     track: CapabilityState
-    tracking_kind: TrackingKind
 
 
 class ProviderClient:
@@ -267,7 +265,6 @@ class ProviderClient:
             mark=capability_state(supported=can_mark),
             track=capability_state(supported=self._tracking_adapter.supports_tracking),
             wallet=capability_state(supported=can_wallet),
-            tracking_kind=self._tracking_adapter.tracking_kind,
         )
 
     def can(self, feature: FeatureKind, context: dict[str, Any] | None = None) -> bool:

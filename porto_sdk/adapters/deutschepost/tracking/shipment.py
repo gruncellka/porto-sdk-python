@@ -21,7 +21,6 @@ class Adapter(TrackingAdapter):
 
     def __init__(self, *, base_url: str, http_client: object | None) -> None:
         self.provider_id = "deutschepost"
-        self.tracking_kind = "label"
         self.supports_tracking = True
         self.wire = "shipment"
         self._base_url = base_url.rstrip("/")
@@ -118,7 +117,6 @@ def snapshot(*, tracking_number: str, payload: dict[str, Any]) -> TrackingStatus
     return TrackingStatus(
         tracking_number=tracking_number,
         provider_id="deutschepost",
-        tracking_kind="label",
         status=assembled.status,
         last_update=assembled.last_update,
         status_changed_at=assembled.status_changed_at,
