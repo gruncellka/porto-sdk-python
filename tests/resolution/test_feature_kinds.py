@@ -5,12 +5,14 @@ from __future__ import annotations
 import pytest
 
 from porto_sdk import PROOF_FEATURE_KINDS
+from porto_sdk.adapters.deutschepost.internetmarke.adapter import InternetmarkeAdapter
+from porto_sdk.adapters.deutschepost.internetmarke.checkout import CheckoutResult
 from porto_sdk.config import CacheConfig
 from porto_sdk.data.context import PostalResolutionContext
 from porto_sdk.data.domain_validator import DomainIds
 from porto_sdk.data.loader import PortoDataLoader
 from porto_sdk.errors import PortoError, PortoErrorCode
-from porto_sdk.execution import MarkExecution, build_porto_mark
+from porto_sdk.execution import ExecutionParameters, MarkExecution, build_porto_mark
 from porto_sdk.services.feature_kinds import feature_kinds_for_service_ids
 from porto_sdk.services.porto_execution import PortoExecution
 from porto_sdk.services.porto_resolver import PortoResolver, ResolutionRequest
@@ -161,3 +163,51 @@ async def test_execute_copies_feature_kinds(porto_data_path: str) -> None:
         mark = await execution.execute(prepared, 0)
         assert mark.tracking_number == "RR123"
         assert list(mark.feature_kinds) == list(porto.feature_kinds)
+
+
+_DP_CHECKOUT = {
+    "shopOrderId": "order-9",
+    "link": "https://example.test/mark.png",
+    "voucherList": [{"voucherId": "v-9", "trackId": "A0031B2C3D"}],
+}
+
+
+class _DpCheckout:
+    async def png(self, *, positions, total, execution):
+        del positions, execution
+        return CheckoutResult(
+            shop_order_id="order-9",
+            link="https://example.test/mark.png",
+            headers={},
+            url="https://api-eu.dhl.com/post/de/shipping/im/v1/app/shoppingcart/png",
+            request={"total": total},
+            response=_DP_CHECKOUT,
+        )
+
+
+@pytest.mark.asyncio
+@pytest.mark.offline
+async def test_internetmarke_checkout_keeps_track_id_and_copies_kinds(porto_data_path: str) -> None:
+    resolver = _resolver(porto_data_path)
+    adapter = InternetmarkeAdapter()
+    adapter._checkout_for = lambda execution: _DpCheckout()  # type: ignore[method-assign]
+    execution = PortoExecution(resolver.data_loader, adapter=adapter)
+    request = MarkRequest(value=95, wire_code=1, zone="domestic")
+    for service_id in (None, "einschreiben_rueckschein"):
+        porto = _resolve(resolver, service_id)
+        direct = await adapter.mark(
+            request,
+            resolved_product=porto.product,
+            execution=ExecutionParameters(),
+        )
+        assert direct.tracking_number == "A0031B2C3D"
+        assert direct.feature_kinds == []
+        prepared = MarkExecution(
+            porto=porto,
+            request=request,
+            resolved_product=porto.product,
+        )
+        copied = await execution.execute(prepared, 0)
+        assert copied.tracking_number == "A0031B2C3D"
+        assert list(copied.feature_kinds) == list(porto.feature_kinds)
+        assert "feature_kinds" not in _DP_CHECKOUT

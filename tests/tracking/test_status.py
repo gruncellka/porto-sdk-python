@@ -206,6 +206,7 @@ def test_mark_checkout_does_not_invent_created() -> None:
 
     marks = adapter._marks_from_checkout(Tracked(), "application/pdf", [95, 110])
     assert [item.tracking_number for item in marks] == ["TRACK1", "TRACK2"]
+    assert all(item.feature_kinds == [] for item in marks)
     assert marks[0].provider_raw["voucherIndex"] == 0
     assert marks[1].external_id == "order-2"
     assert all(
