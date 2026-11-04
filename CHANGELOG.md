@@ -4,6 +4,7 @@
 
 ### Added
 
+- `feature_kinds` on `Porto`, `PortoMark`, and `ServiceOption` lists the feature kinds of the purchased service.
 - `PortoStatus` as the normalized carrier status.
 - `statuses.json` set-parity (contract only; no runtime JSON). `PortoStatus` is generated from that catalog.
 - Optional opaque, sanitized `provider_raw` on `PortoMark` and `TrackingStatus`.

@@ -282,11 +282,13 @@ class PortoExecution:
                 ),
             }
         )
-        return await self._adapter.mark(
+        mark = await self._adapter.mark(
             prepared.request,
             resolved_product=resolved_product,
             execution=opts,
         )
+        kinds = list(prepared.porto.feature_kinds) if prepared.porto is not None else []
+        return mark.model_copy(update={"feature_kinds": kinds})
 
     async def bytes(
         self,

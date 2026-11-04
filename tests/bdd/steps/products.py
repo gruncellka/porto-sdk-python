@@ -54,6 +54,20 @@ def product_option_includes_service(product_id, service_id, context):
     assert any(svc.id == service_id for svc in row.services)
 
 
+@then(
+    parsers.parse(
+        'product option "{product_id}" service "{service_id}" should have feature kinds "{kinds}"'
+    )
+)
+def product_option_service_feature_kinds(product_id, service_id, kinds, context):
+    row = _option_by_id(context, product_id)
+    assert row is not None
+    service = next((item for item in row.services if item.id == service_id), None)
+    assert service is not None
+    expected = [part.strip() for part in kinds.split(",") if part.strip()]
+    assert list(service.feature_kinds) == expected
+
+
 @when(
     parsers.parse(
         'I resolve using product "{product_id}" and discovered service "{service_id}"'

@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING, Literal, overload
 from pydantic import BaseModel, Field, field_validator
 
 from .errors.domains.data import raise_data_invalid
+from .kinds import FeatureKind
 from .types import Address, MarkRequest
 
 if TYPE_CHECKING:
@@ -79,6 +80,7 @@ class PortoMark(BaseModel):
     wire: str
     generated_at: str
     provider_raw: dict | None = None
+    feature_kinds: list[FeatureKind] = Field(default_factory=list)
 
     model_config = {"extra": "forbid"}
 

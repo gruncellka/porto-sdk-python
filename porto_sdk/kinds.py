@@ -27,6 +27,12 @@ FeatureKind = Literal[
 
 SERVICE_KINDS: frozenset[str] = frozenset(get_args(ServiceKind))
 FEATURE_KINDS: frozenset[str] = frozenset(get_args(FeatureKind))
+PROOF_FEATURE_KINDS: tuple[FeatureKind, ...] = (
+    "acceptance_proof",
+    "recipient_signature",
+    "return_receipt",
+    "delivery_proof",
+)
 
 
 def is_service_kind(value: object) -> bool:
