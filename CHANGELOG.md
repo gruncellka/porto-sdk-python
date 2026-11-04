@@ -14,6 +14,7 @@
 
 ### Changed
 
+- Require porto-features 0.6.0.
 - `tracking_kind` is gone. A tracking number and `capabilities.track` are enough, and the wire id stays `shipment`.
 - Unknown native codes stay unmapped: no `UNKNOWN`, and no coercion to `transit`.
 - `occurred_kind` keeps an explicit offset or a zoneless local time. Poll time is not carrier time.
