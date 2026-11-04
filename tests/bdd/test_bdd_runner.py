@@ -63,7 +63,7 @@ def test_all_batches_have_unique_ids():
 def test_print_batch_list_is_grouped(capsys):
     Reporter().print_batch_list(BDD_BATCHES)
     out = capsys.readouterr().out
-    assert "BDD batches (24)" in out
+    assert "BDD batches (25)" in out
     assert "cli-core" in out
     assert "swisspost-resolution" in out
     assert "make sdk" in out

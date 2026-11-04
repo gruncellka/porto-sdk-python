@@ -101,6 +101,12 @@ BDD_BATCHES: tuple[BddBatch, ...] = (
         feature_glob="core/errors.feature",
     ),
     BddBatch(
+        id="core-status",
+        label="Core · PortoStatus catalog",
+        group=BddBatchGroup.CORE,
+        feature_glob="core/status.feature",
+    ),
+    BddBatch(
         id="core-mark",
         label="Core · mark",
         group=BddBatchGroup.CORE,

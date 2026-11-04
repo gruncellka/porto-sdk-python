@@ -26,6 +26,7 @@ pytest_plugins = [
     "tests.bdd.steps.restrictions",
     "tests.bdd.steps.validation",
     "tests.bdd.steps.errors",
+    "tests.bdd.steps.status",
     "tests.bdd.steps.marks",
 ]
 

@@ -78,6 +78,7 @@ class PortoMark(BaseModel):
     provider: str
     wire: str
     generated_at: str
+    provider_raw: dict | None = None
 
     model_config = {"extra": "forbid"}
 
@@ -107,6 +108,7 @@ def build_porto_mark(
     external_id: str | None = None,
     tracking_number: str | None = None,
     generated_at: str | None = None,
+    provider_raw: dict | None = None,
 ) -> PortoMark:
     """Mint a PortoMark. Adapters must call ProviderBoundMarkFactory.new_mark."""
     return PortoMark(
@@ -120,6 +122,7 @@ def build_porto_mark(
         provider=provider,
         wire=wire,
         generated_at=generated_at or utc_now_iso(),
+        provider_raw=provider_raw,
     )
 
 
@@ -139,6 +142,7 @@ class ProviderBoundMarkFactory:
         external_id: str | None = None,
         tracking_number: str | None = None,
         generated_at: str | None = None,
+        provider_raw: dict | None = None,
     ) -> PortoMark:
         return build_porto_mark(
             provider=self.provider_id,
@@ -150,6 +154,7 @@ class ProviderBoundMarkFactory:
             external_id=external_id,
             tracking_number=tracking_number,
             generated_at=generated_at,
+            provider_raw=provider_raw,
         )
 
 

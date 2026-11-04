@@ -1,4 +1,4 @@
-.PHONY: . help sync install-hooks registry bindings sync-bindings lint types build check validate clean clean-deps clean-all test sdk adapters heavy test-cov test-api artifact artifacts-clean artifacts-list artifacts-summary
+.PHONY: . help sync install-hooks registry bindings sync-bindings lint types build check validate clean clean-deps clean-all test sdk adapters heavy test-cov test-api artifact artifacts-clean artifacts-list artifacts-summary naming
 
 .DEFAULT_GOAL := .
 
@@ -14,6 +14,7 @@ help:
 	@echo "Porto SDK Python — Make targets"
 	@echo "  make sync install-hooks registry bindings sync-bindings lint types test check validate build artifact"
 	@echo "  make sdk adapters heavy test-cov test-api"
+	@echo "  make naming"
 	@echo "  make artifacts-clean artifacts-list artifacts-summary clean clean-deps clean-all"
 
 .:
@@ -41,9 +42,11 @@ registry:
 
 sync-bindings: .
 	@$(PYTHON) scripts/build/build_error_bindings.py
+	@$(PYTHON) scripts/build/build_status_bindings.py
 
 bindings: .
 	@$(PYTHON) scripts/build/build_error_bindings.py --check
+	@$(PYTHON) scripts/build/build_status_bindings.py --check
 
 lint: .
 	@.venv/bin/ruff check porto_sdk scripts tests
@@ -97,6 +100,14 @@ artifacts-list:
 
 artifacts-summary:
 	@cat artifacts/bdd/latest/summary.json 2>/dev/null | $(PYTHON) -m json.tool || echo "No summary available"
+
+naming:
+	@if [ -f "$(CURDIR)/../../scripts/naming.py" ]; then \
+		python3 "$(CURDIR)/../../scripts/naming.py"; \
+	else \
+		echo "naming: run from porto-sdk-lab (scripts/naming.py)"; \
+		exit 0; \
+	fi
 
 clean:
 	@find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true

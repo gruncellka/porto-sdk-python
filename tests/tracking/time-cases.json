@@ -1,0 +1,97 @@
+{
+    "normalization": [
+        {
+            "name": "utc offset stays explicit",
+            "input": "2026-01-01T10:00:00+00:00",
+            "value": "2026-01-01T10:00:00+00:00",
+            "kind": "offset"
+        },
+        {
+            "name": "positive offset stays explicit",
+            "input": "2026-01-01T10:00:00+02:00",
+            "value": "2026-01-01T10:00:00+02:00",
+            "kind": "offset"
+        },
+        {
+            "name": "nanoseconds trim to milliseconds",
+            "input": "2026-01-01T10:00:00.123456789+01:00",
+            "value": "2026-01-01T10:00:00.123+01:00",
+            "kind": "offset"
+        },
+        {
+            "name": "short fraction pads to milliseconds",
+            "input": "2026-01-01T10:00:00.1Z",
+            "value": "2026-01-01T10:00:00.100Z",
+            "kind": "offset"
+        },
+        {
+            "name": "ukrposhta local time stays local",
+            "input": "2023-05-20T17:38:00",
+            "value": "2023-05-20T17:38:00",
+            "kind": "local"
+        },
+        {
+            "name": "swiss datatransfer time stays local",
+            "input": "2026-11-02T10:00:00",
+            "value": "2026-11-02T10:00:00",
+            "kind": "local"
+        },
+        {
+            "name": "swiss offset-aware contract keeps offset",
+            "input": "2026-11-02T10:00:00+01:00",
+            "value": "2026-11-02T10:00:00+01:00",
+            "kind": "offset"
+        },
+        {
+            "name": "date only is absent",
+            "input": "2026-11-02",
+            "value": null,
+            "kind": null
+        },
+        {
+            "name": "invalid date is absent",
+            "input": "2026-02-30T10:00:00+01:00",
+            "value": null,
+            "kind": null
+        }
+    ],
+    "identity": [
+        {
+            "name": "stable native sequence",
+            "provider": "deutschepost",
+            "tracking": "TRACK",
+            "code": "transit",
+            "sequence": 7,
+            "index": null,
+            "occurredAt": null,
+            "eventId": "6fa9dc7f0bda067bf502f3bfa984b2c8"
+        },
+        {
+            "name": "explicit list index fallback",
+            "provider": "deutschepost",
+            "tracking": "TRACK",
+            "code": "transit",
+            "sequence": null,
+            "index": 0,
+            "occurredAt": null,
+            "eventId": "a730d1cdbbf7cf813ed3b2b2b96ead2d"
+        }
+    ],
+    "assembly": {
+        "events": [
+            {
+                "code": "transit",
+                "occurredAt": "2026-01-01T10:00:00+00:00",
+                "sequence": 1
+            },
+            {
+                "code": "transit",
+                "occurredAt": "2026-01-01T11:00:00+00:00",
+                "sequence": 2
+            }
+        ],
+        "status": "transit",
+        "lastUpdate": "2026-01-01T11:00:00+00:00",
+        "statusChangedAt": "2026-01-01T10:00:00+00:00"
+    }
+}

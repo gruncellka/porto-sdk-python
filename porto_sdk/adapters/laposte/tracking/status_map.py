@@ -1,12 +1,12 @@
 """La Poste Suivi — placeholder map for future live wire."""
 
-from ....types import TrackingState
+from ....types import PortoStatus
 
-LAPOSTE_STATUS_MAP: dict[str, TrackingState] = {
-    "PC1": TrackingState.CREATED,
-    "PC2": TrackingState.IN_TRANSIT,
-    "PC3": TrackingState.OUT_FOR_DELIVERY,
-    "LIV": TrackingState.DELIVERED,
-    "REN": TrackingState.RETURNED,
-    "NDR": TrackingState.UNDELIVERABLE,
+MAP: dict[str, PortoStatus] = {
+    "PC1": PortoStatus.CREATED,
+    "PC2": PortoStatus.TRANSIT,
+    "PC3": PortoStatus.DELIVERY,
+    "LIV": PortoStatus.DELIVERED,
+    "REN": PortoStatus.RETURNED,
+    "NDR": PortoStatus.UNDELIVERABLE,
 }
