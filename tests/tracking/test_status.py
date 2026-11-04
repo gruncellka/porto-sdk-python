@@ -9,29 +9,18 @@ import pytest
 
 from porto_sdk.adapters.deutschepost.internetmarke.adapter import InternetmarkeAdapter
 from porto_sdk.adapters.deutschepost.tracking.shipment import Adapter as Shipment
-from porto_sdk.adapters.deutschepost.tracking.status_map import MAP as deutschepost
-from porto_sdk.adapters.laposte.tracking.status_map import MAP as laposte
-from porto_sdk.adapters.swisspost.tracking.status_map import MAP as swisspost
-from porto_sdk.adapters.tracking.acl import map_native_status
+from porto_sdk.adapters.tracking.acl import STATUS_MAPS, map_native_status
 from porto_sdk.adapters.tracking.adapter import (
     StubTrackingAdapter,
     UnsupportedTrackingAdapter,
     get_tracking_adapter,
     map_event,
 )
-from porto_sdk.adapters.ukrposhta.tracking.status_map import MAP as ukrposhta
 from porto_sdk.config import WireConfig
 from porto_sdk.errors import PortoError, PortoErrorCode
 from porto_sdk.execution import PortoMark
 from porto_sdk.provider_payload import sanitize_provider_payload
 from porto_sdk.types import PortoStatus
-
-MAPS = {
-    "deutschepost": deutschepost,
-    "laposte": laposte,
-    "swisspost": swisspost,
-    "ukrposhta": ukrposhta,
-}
 
 CHECKOUT = {
     "shopOrderId": "order-1",
@@ -50,9 +39,9 @@ CHECKOUT_TRACKED = {
 }
 
 
-@pytest.mark.parametrize("provider", sorted(MAPS))
+@pytest.mark.parametrize("provider", sorted(STATUS_MAPS))
 def test_each_provider_map_covers_every_porto_status(provider: str) -> None:
-    mapped = {map_native_status(provider, key) for key in MAPS[provider]}
+    mapped = {map_native_status(provider, key) for key in STATUS_MAPS[provider]}
     assert mapped == set(PortoStatus)
 
 
