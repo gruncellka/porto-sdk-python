@@ -24,10 +24,11 @@ from ..errors.domains.resolution import (
     raise_too_heavy,
 )
 from ..execution import MarkType, TrackingMode
-from ..kinds import ServiceKind
+from ..kinds import FeatureKind, ServiceKind
 from ..requires import Requirement
 from ..requires import merge as merge_requires
 from ..types import Dimensions
+from .feature_kinds import feature_kinds_for_service_ids
 from .mark_resolution import resolve_mark_profile_id
 from .product_option_types import ServiceOption
 from .resolution import (
@@ -82,6 +83,7 @@ class Porto(BaseModel):
     requires: tuple[Requirement, ...] = ()
     services: tuple[ServiceKind, ...] = ()
     service_ids: tuple[str, ...] = ()
+    feature_kinds: list[FeatureKind] = Field(default_factory=list)
 
     model_config = {"arbitrary_types_allowed": True}
 
@@ -403,6 +405,7 @@ class PortoResolver:
             requires=tuple(sorted(requires)),
             services=tuple(selected_kinds),
             service_ids=tuple(mapped_service_ids),
+            feature_kinds=feature_kinds_for_service_ids(self.data_loader, mapped_service_ids),
         )
 
         self.cache.set(cache_key, porto)

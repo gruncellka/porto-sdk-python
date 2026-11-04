@@ -167,6 +167,12 @@ def verify_resolved_feature_kind(feature_kind, context):
     assert feature_kind in kinds
 
 
+@then(parsers.parse('the resolved Porto feature kinds should be "{kinds}"'))
+def resolved_porto_feature_kinds(kinds, context):
+    expected = [part.strip() for part in kinds.split(",") if part.strip()]
+    assert list(context["resolved"].feature_kinds) == expected
+
+
 @then("the resolved amount should be greater than the product component amount")
 def verify_amount_includes_services(context):
     porto = context["resolved"]

@@ -7,7 +7,7 @@ from typing import Literal
 from pydantic import BaseModel, Field
 
 from ..execution import MarkType, TrackingMode
-from ..kinds import ServiceKind
+from ..kinds import FeatureKind, ServiceKind
 from .resolution.delivery_resolver import DeliveryHint
 
 
@@ -26,6 +26,7 @@ class ServiceOption(BaseModel):
     currency: str
     label: str | None = None
     combinable_with: list[str] | None = None
+    feature_kinds: list[FeatureKind] = Field(default_factory=list)
 
 
 class ProductOption(BaseModel):

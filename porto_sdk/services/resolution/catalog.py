@@ -8,6 +8,7 @@ from ...data.entities.services import Service
 from ...data.loader import PortoDataLoader, PortoPricing, PortoProduct, PortoWeightTier, PortoZone
 from ...errors.domains.data import raise_data_not_found
 from ...kinds import ServiceKind
+from ..feature_kinds import feature_kinds_for_service_ids
 from ..product_option_types import ServiceOption
 from .service_resolver import ServiceResolver
 from .types import DestinationCountry
@@ -142,6 +143,7 @@ class PortoCatalog:
                     combinable_with=(
                         list(row.combinable_with) if row.combinable_with is not None else None
                     ),
+                    feature_kinds=feature_kinds_for_service_ids(self._loader, [sid]),
                 )
             )
         return options

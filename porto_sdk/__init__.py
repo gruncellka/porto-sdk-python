@@ -35,7 +35,7 @@ from .execution import (
     PortoMarkRequest,
     TrackingMode,
 )
-from .kinds import FeatureKind, ServiceKind
+from .kinds import PROOF_FEATURE_KINDS, FeatureKind, ServiceKind
 from .provider_client import ProviderCapabilities, ProviderClient
 from .requires import Requirement
 from .services.envelope_resolver import EnvelopeIdentity, Envelopes
@@ -104,6 +104,7 @@ __all__ = [
     "PortoMark",
     "PortoMarkRequest",
     "PortoStatus",
+    "PROOF_FEATURE_KINDS",
     "PriceComponent",
     "PriceInput",
     "Pricing",

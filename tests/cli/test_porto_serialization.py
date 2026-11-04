@@ -32,6 +32,7 @@ PORTO_JSON_KEYS = frozenset(
         "requires",
         "services",
         "service_ids",
+        "feature_kinds",
     }
 )
 
